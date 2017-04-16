@@ -1,0 +1,14 @@
+<tabs>
+    <tab
+        id="@+id/tab_backup"
+        icon="@mipmap/backup"
+        title="Backups" />
+    <tab
+        id="@+id/tab_user"
+        icon="@mipmap/user"
+        title="User" />
+    <tab
+        id="@+id/tab_settings"
+        icon="@mipmap/settings"
+        title="Settings" />
+</tabs>

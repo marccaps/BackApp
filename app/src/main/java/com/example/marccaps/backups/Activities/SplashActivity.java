@@ -17,14 +17,13 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
 
         // Set portrait orientation
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // Hide title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        setContentView(R.layout.activity_splash);
+        setContentView(R.layout.splash_activity);
 
         TimerTask task = new TimerTask() {
             @Override
@@ -32,7 +31,7 @@ public class SplashActivity extends AppCompatActivity {
 
                 // Start the next activity
                 Intent mainIntent = new Intent().setClass(
-                        SplashActivity.this, MainActivity.class);
+                        SplashActivity.this, LoginActivity.class);
                 startActivity(mainIntent);
 
                 // Close the activity so the user won't able to go back this
