@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.view.Window;
 
 import com.example.marccaps.backups.Constant.Constants;
+import com.example.marccaps.backups.Constant.UserInfo;
 import com.example.marccaps.backups.R;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class SplashActivity extends AppCompatActivity {
+
+    private static final String TAG = SplashActivity.class.getCanonicalName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +32,8 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                // Start the next activity
-                Intent mainIntent = new Intent().setClass(
-                        SplashActivity.this, LoginActivity.class);
-                startActivity(mainIntent);
+                if(UserInfo.isConnected(getApplicationContext())) goToMainActivity();
+                else goToLoginActivity();
 
                 // Close the activity so the user won't able to go back this
                 // activity pressing Back button
@@ -43,5 +44,15 @@ public class SplashActivity extends AppCompatActivity {
         // Simulate a long loading process on application startup.
         Timer timer = new Timer();
         timer.schedule(task, Constants.SPLASH_SCREEN_DELAY);
+    }
+
+    private void goToLoginActivity() {
+        Intent mainIntent = new Intent().setClass(SplashActivity.this, LoginActivity.class);
+        startActivity(mainIntent);
+    }
+
+    private void goToMainActivity() {
+        Intent mainIntent = new Intent().setClass(SplashActivity.this, MainActivity.class);
+        startActivity(mainIntent);
     }
 }

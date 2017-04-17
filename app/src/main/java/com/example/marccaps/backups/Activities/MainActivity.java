@@ -19,6 +19,8 @@ import com.roughike.bottombar.OnTabSelectListener;
 
 public class MainActivity extends Activity {
 
+    private static final String TAG = MainActivity.class.getCanonicalName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +34,9 @@ public class MainActivity extends Activity {
                     case R.id.tab_backup:
                         Fragment backUpFragment = new BackUpFragment();
                         FragmentTransaction backUpTransition = getFragmentManager().beginTransaction();
+                        backUpTransition.setCustomAnimations(
+                                R.animator.fragment_animation_in,
+                                R.animator.fragment_animation_out);
                         backUpTransition.replace(R.id.contentContainer, backUpFragment);
                         backUpTransition.addToBackStack(null);
                         backUpTransition.commit();
@@ -39,6 +44,9 @@ public class MainActivity extends Activity {
                     case R.id.tab_user:
                         Fragment userFragment = new UserFragment();
                         FragmentTransaction userTransition = getFragmentManager().beginTransaction();
+                        userTransition.setCustomAnimations(
+                                R.animator.fragment_animation_in,
+                                R.animator.fragment_animation_out);
                         userTransition.replace(R.id.contentContainer, userFragment);
                         userTransition.addToBackStack(null);
                         userTransition.commit();
@@ -46,6 +54,9 @@ public class MainActivity extends Activity {
                     case R.id.tab_settings:
                         Fragment settingsFragment = new SettingsFragment();
                         FragmentTransaction settingsTransition = getFragmentManager().beginTransaction();
+                        settingsTransition.setCustomAnimations(
+                                R.animator.fragment_animation_in,
+                                R.animator.fragment_animation_out);
                         settingsTransition.replace(R.id.contentContainer, settingsFragment);
                         settingsTransition.addToBackStack(null);
                         settingsTransition.commit();
