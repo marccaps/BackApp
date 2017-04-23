@@ -3,6 +3,7 @@ package com.example.marccaps.backups.Activities;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 
@@ -73,5 +74,10 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         //Nothing to do here
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
