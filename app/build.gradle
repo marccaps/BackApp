@@ -31,5 +31,6 @@ dependencies {
     compile 'com.roughike:bottom-bar:2.3.0'
     compile 'com.android.support:recyclerview-v7:21.0.+'
     compile 'com.droidninja:filepicker:2.0.3'
+    compile 'com.google.code.gson:gson:2.4'
     testCompile 'junit:junit:4.12'
 }

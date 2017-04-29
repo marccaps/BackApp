@@ -35,9 +35,6 @@ public class SplashActivity extends AppCompatActivity {
                 if(UserInfo.isConnected(getApplicationContext())) goToMainActivity();
                 else goToLoginActivity();
 
-                // Close the activity so the user won't able to go back this
-                // activity pressing Back button
-                finish();
             }
         };
 

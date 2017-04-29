@@ -21,6 +21,7 @@ import com.roughike.bottombar.OnTabSelectListener;
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getCanonicalName();
+    private Fragment mActualFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,7 @@ public class MainActivity extends Activity {
                 switch (tabId) {
                     case R.id.tab_backup:
                         Fragment backUpFragment = new BackUpFragment();
+                        mActualFragment = backUpFragment;
                         FragmentTransaction backUpTransition = getFragmentManager().beginTransaction();
                         backUpTransition.setCustomAnimations(
                                 R.animator.fragment_animation_in,
@@ -44,6 +46,7 @@ public class MainActivity extends Activity {
                         break;
                     case R.id.tab_user:
                         Fragment userFragment = new UserFragment();
+                        mActualFragment = userFragment;
                         FragmentTransaction userTransition = getFragmentManager().beginTransaction();
                         userTransition.setCustomAnimations(
                                 R.animator.fragment_animation_in,
@@ -54,6 +57,7 @@ public class MainActivity extends Activity {
                         break;
                     case R.id.tab_settings:
                         Fragment settingsFragment = new SettingsFragment();
+                        mActualFragment = settingsFragment;
                         FragmentTransaction settingsTransition = getFragmentManager().beginTransaction();
                         settingsTransition.setCustomAnimations(
                                 R.animator.fragment_animation_in,
@@ -78,6 +82,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        mActualFragment.onActivityResult(requestCode,resultCode,data);
     }
 }

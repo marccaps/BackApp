@@ -5,9 +5,11 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -22,7 +24,10 @@ import com.example.marccaps.backups.Adapters.BackUpAdapter;
 import com.example.marccaps.backups.Constant.Constants;
 import com.example.marccaps.backups.Models.BackUpItem;
 import com.example.marccaps.backups.R;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +47,11 @@ public class BackUpFragment extends Fragment {
     @BindView(R.id.add_backup_file)
     FloatingActionButton mAddButton;
 
+    private ArrayList<BackUpItem> mUserFiles;
+
     private ArrayList<String> mFilePaths;
     private LinearLayoutManager lLayout;
+    private BackUpAdapter backUpAdapter;
 
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -55,7 +63,6 @@ public class BackUpFragment extends Fragment {
 
         ButterKnife.bind(this, view);
 
-        List<BackUpItem> rowListItem = getAllItemList();
         lLayout = new LinearLayoutManager(view.getContext());
 
         mRecyclerView.setLayoutManager(lLayout);
@@ -67,7 +74,6 @@ public class BackUpFragment extends Fragment {
                 if (getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
 
-                    // Should we show an explanation?
                     if (shouldShowRequestPermissionRationale(
                             Manifest.permission.READ_EXTERNAL_STORAGE)) {
                         // TODO: 23/4/17 Explicar porque necesitamos acceso a sus datos
@@ -76,8 +82,7 @@ public class BackUpFragment extends Fragment {
                     requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             Constants.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
 
-                }
-                else {
+                } else {
                     FilePickerBuilder.getInstance().setMaxCount(10)
                             .setSelectedFiles(mFilePaths)
                             .setActivityTheme(R.style.AppTheme)
@@ -86,26 +91,10 @@ public class BackUpFragment extends Fragment {
             }
         });
 
-        BackUpAdapter rcAdapter = new BackUpAdapter(view.getContext(), rowListItem);
-        mRecyclerView.setAdapter(rcAdapter);
+        getUserFiles();
+        backUpAdapter = new BackUpAdapter(view.getContext(), mUserFiles);
+        mRecyclerView.setAdapter(backUpAdapter);
         return view;
-    }
-
-    private List<BackUpItem> getAllItemList() {
-
-        List<BackUpItem> allItems = new ArrayList<BackUpItem>();
-        allItems.add(new BackUpItem("File 1"));
-        allItems.add(new BackUpItem("File 2"));
-        allItems.add(new BackUpItem("File 3"));
-        allItems.add(new BackUpItem("File 4"));
-        allItems.add(new BackUpItem("File 5"));
-        allItems.add(new BackUpItem("File 6"));
-        allItems.add(new BackUpItem("File 7"));
-        allItems.add(new BackUpItem("File 8"));
-        allItems.add(new BackUpItem("File 9"));
-        allItems.add(new BackUpItem("File 10"));
-
-        return allItems;
     }
 
     @Override
@@ -119,7 +108,40 @@ public class BackUpFragment extends Fragment {
                 }
                 break;
         }
-        // TODO: 23/4/17 Add them to the view
+        mUserFiles.addAll(filePahtToBackUpItem(mFilePaths));
+        saveUserFiles(mUserFiles);
+        backUpAdapter.notifyDataSetChanged();
+    }
+
+    private void saveUserFiles(ArrayList<BackUpItem> mUserFiles) {
+        SharedPreferences appSharedPrefs = getActivity().getSharedPreferences(Constants.FILE_LIST,getActivity().MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = appSharedPrefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(mUserFiles);
+        prefsEditor.putString(Constants.FILE_LIST, json);
+        prefsEditor.apply();
+    }
+
+    private void getUserFiles() {
+        SharedPreferences mPrefs = getActivity().getSharedPreferences(Constants.FILE_LIST, getActivity().MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = mPrefs.getString(Constants.FILE_LIST, "");
+        if (json.isEmpty()) {
+            mUserFiles = new ArrayList<BackUpItem>();
+        } else {
+            Type type = new TypeToken<List<BackUpItem>>() {
+            }.getType();
+            mUserFiles = gson.fromJson(json, type);
+        }
+    }
+
+    private ArrayList<BackUpItem> filePahtToBackUpItem(ArrayList<String> mFilePaths) {
+        ArrayList<BackUpItem> newFiles = new ArrayList<>();
+        for (String file : mFilePaths) {
+            BackUpItem backUpItem = new BackUpItem(file.substring(file.lastIndexOf("/") + 1));
+            newFiles.add(backUpItem);
+        }
+        return newFiles;
     }
 
     @Override
@@ -135,8 +157,6 @@ public class BackUpFragment extends Fragment {
                             .setActivityTheme(R.style.AppTheme)
                             .pickFile(getActivity());
 
-                } else {
-                    // TODO: 23/4/17 Tell the user that this is necessary
                 }
             }
         }
