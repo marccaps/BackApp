@@ -4,16 +4,36 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.marccaps.backups.Constant.UserInfo;
+import com.example.marccaps.backups.Interfaces.ApiEndpointInterface;
+import com.example.marccaps.backups.Models.Credentials;
+import com.example.marccaps.backups.Models.ResponseLogin;
 import com.example.marccaps.backups.R;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.example.marccaps.backups.Constant.Constants.BASE_URL;
 
 /**
  * Created by MarcCaps on 1/4/17.
@@ -22,6 +42,10 @@ import butterknife.ButterKnife;
 public class LoginActivity extends Activity implements View.OnClickListener {
 
     private static final String TAG = LoginActivity.class.getCanonicalName();
+    ProgressDialog progressDialog;
+
+    public Retrofit retrofit;
+    public ApiEndpointInterface apiService;
 
     @BindView(R.id.input_username) EditText mUserText;
     @BindView(R.id.input_password) EditText mPasswordText;
@@ -33,20 +57,22 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         setContentView(R.layout.login_activity);
         ButterKnife.bind(this);
 
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        apiService = retrofit.create(ApiEndpointInterface.class);
+
         mLoginButton.setOnClickListener(this);
 
     }
 
     public void login() {
 
-        if (!validate()) {
-            onLoginFailed();
-            return;
-        }
+        validate();
 
-        mLoginButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(this, R.style.AppTheme_Dark_Dialog);
+        progressDialog = new ProgressDialog(this, R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
@@ -55,11 +81,10 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                 new Runnable() {
                     public void run() {
                         // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
                         // onLoginFailed();
-                        progressDialog.dismiss();
                     }
                 }, 3000);
+
     }
 
 
@@ -84,27 +109,35 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         mLoginButton.setEnabled(true);
     }
 
-    private boolean validate() {
-        boolean valid = true;
+    private void validate() {
+        final boolean[] valid = new boolean[1];
 
         String email = mUserText.getText().toString();
         String password = mPasswordText.getText().toString();
 
-        if (email.isEmpty() || !email.equals("admin")) {
-            mUserText.setError("enter a valid email address");
-            valid = false;
-        } else {
-            mUserText.setError(null);
-        }
+        Credentials credentials = new Credentials(email,password);
 
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            mPasswordText.setError("between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
-            mPasswordText.setError(null);
-        }
+        Call<ResponseLogin> getSession = apiService.getAccess(credentials);
 
-        return valid;
+        getSession.enqueue(new Callback<ResponseLogin>() {
+            @Override
+            public void onResponse(Call<ResponseLogin> call, Response<ResponseLogin> response) {
+                if(response.body().getSuccess().equals("true")){
+                    onLoginSuccess();
+                }
+                else {
+                    progressDialog.dismiss();
+                    onLoginFailed();
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseLogin> call, Throwable t) {
+                Log.e(TAG,"Error in login");
+                onLoginFailed();
+            }
+        });
     }
 
     @Override

@@ -9,24 +9,33 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.marccaps.backups.Activities.MainActivity;
 import com.example.marccaps.backups.Adapters.BackUpAdapter;
 import com.example.marccaps.backups.Constant.Constants;
+import com.example.marccaps.backups.Constant.UserInfo;
+import com.example.marccaps.backups.Interfaces.ApiEndpointInterface;
 import com.example.marccaps.backups.Models.BackUpItem;
+import com.example.marccaps.backups.Models.FileObject;
+import com.example.marccaps.backups.Models.ResponseLogin;
+import com.example.marccaps.backups.Models.User;
 import com.example.marccaps.backups.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +44,14 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import droidninja.filepicker.FilePickerBuilder;
 import droidninja.filepicker.FilePickerConst;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.example.marccaps.backups.Constant.Constants.BASE_URL;
 
 /**
  * Created by MarcCaps on 16/4/17.
@@ -49,6 +66,10 @@ public class BackUpFragment extends Fragment {
 
     private ArrayList<BackUpItem> mUserFiles;
 
+    public Retrofit retrofit;
+    public ApiEndpointInterface apiService;
+
+    private static final String TAG = BackUpFragment.class.getCanonicalName();
     private ArrayList<String> mFilePaths;
     private LinearLayoutManager lLayout;
     private BackUpAdapter backUpAdapter;
@@ -66,6 +87,13 @@ public class BackUpFragment extends Fragment {
         lLayout = new LinearLayoutManager(view.getContext());
 
         mRecyclerView.setLayoutManager(lLayout);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        apiService = retrofit.create(ApiEndpointInterface.class);
 
         mAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,6 +121,7 @@ public class BackUpFragment extends Fragment {
 
         getUserFiles();
         backUpAdapter = new BackUpAdapter(view.getContext(), mUserFiles);
+        mUserFiles.add(new BackUpItem("lab2.pdf"));
         mRecyclerView.setAdapter(backUpAdapter);
         return view;
     }
@@ -105,6 +134,22 @@ public class BackUpFragment extends Fragment {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     mFilePaths = new ArrayList<>();
                     mFilePaths.addAll(data.getStringArrayListExtra(FilePickerConst.KEY_SELECTED_DOCS));
+                    File dir = Environment.getExternalStorageDirectory();
+                    File yourFile = new File(dir, mFilePaths.get(0));
+                    FileObject fileObject = new FileObject(yourFile);
+                    Call<ResponseBody> uploadFile = apiService.uploadFile(UserInfo.getUsername(getActivity()),fileObject);
+                    uploadFile.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                            Log.d(TAG,"SUCCESS");
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e(TAG,"ERROR");
+                        }
+                    });
+
                 }
                 break;
         }
